@@ -2,6 +2,7 @@
   "name": "xp-slave-behavior",
   "license": "BSD-3-Clause",
   "version": "0.9.6",
+  "main": "xp-slave-behavior.html",
   "description": "A behavior used to add slave capabilities on the context element for a master-slave pattern",
   "homepage": "http://expandjs.com/elements/xp-slave-behavior",
   "authors": [
@@ -14,9 +15,6 @@
     "html5",
     "expandjs",
     "web-components"
-  ],
-  "main": [
-    "xp-slave-behavior.html"
   ],
   "ignore": [
     "**/.*"
