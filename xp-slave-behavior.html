@@ -7,17 +7,19 @@ The complete set of contributors may be found at https://expandjs.github.io/CONT
 -->
 
 <!--
-This behavior is used to add slave capabilities on the context element for a master-slave pattern.
+A behavior used to add slave capabilities on a custom element.
 
 @element xp-slave-behavior
-@description A behavior used to add slave capabilities on the context element for a master-slave pattern
-@keywords web app, html5, expandjs, web-components
+@description A behavior used to add slave capabilities on a custom element
+@keywords expandjs, web app, custom elements, web-components
 @group behaviors
+@hot
+
 @homepage http://expandjs.com/elements/xp-slave-behavior
 @repository https://github.com/ExpandJS/xp-slave-behavior
 
-@dependency polymer Polymer/polymer#^1.1.0
-@dependency expandjs ExpandJS/expandjs#0.9.11
+@dependency polymer Polymer/polymer#^1.2.0
+@dependency expandjs ExpandJS/expandjs#0.10.0
 -->
 
 <link rel="import" href="../polymer/polymer.html">
@@ -27,7 +29,7 @@ This behavior is used to add slave capabilities on the context element for a mas
     Polymer.XPSlaveBehavior = {
 
         /**
-         * Fired when the slave is attached.
+         * Fired when attached or detached.
          *
          * @event xp-slave
          * @param {Element} firer
@@ -40,17 +42,7 @@ This behavior is used to add slave capabilities on the context element for a mas
         /*********************************************************************/
 
         /**
-         * The method that will return the masters map.
-         *
-         * @method _setupMasters
-         * @abstract
-         */
-        _setupMasters: XP.mock(),
-
-        /*********************************************************************/
-
-        /**
-         * Couples a master to this element.
+         * Couples a master.
          *
          * @method _coupleMaster
          * @param {string} key
@@ -60,12 +52,12 @@ This behavior is used to add slave capabilities on the context element for a mas
          */
         _coupleMaster: function (key, master) {
             var self = this;
-            if (!self[key]) { self['_set' + XP.capitalize(key)](master); }
-            return (master === self[key] && master) || null;
+            if (!self[key]) { self[XP.setter(key, true)](master); }
+            return (self[key] === master && master) || null;
         },
 
         /**
-         * Decouples a master from this element.
+         * Decouples a master.
          *
          * @method _decoupleMaster
          * @param {string} key
@@ -75,7 +67,7 @@ This behavior is used to add slave capabilities on the context element for a mas
          */
         _decoupleMaster: function (key, master) {
             var self = this;
-            if (self[key] === master) { self['_set' + XP.capitalize(key)](null); }
+            if (self[key] === master) { self[XP.setter(key, true)](null); }
             return (!self[key] && master) || null;
         },
 
@@ -86,7 +78,6 @@ This behavior is used to add slave capabilities on the context element for a mas
 
             /**
              * A map used to bind masters to their respective css selector.
-             * Each key is an element's property and its value is the selector.
              *
              * @attribute masters-map
              * @type Object
@@ -97,7 +88,7 @@ This behavior is used to add slave capabilities on the context element for a mas
                 notify: true,
                 readOnly: true,
                 type: Object,
-                value: null
+                value: function () { return {}; }
             }
         },
 
@@ -105,19 +96,14 @@ This behavior is used to add slave capabilities on the context element for a mas
 
         // LISTENER
         attached: function () {
-            var self = this, firer = function (value, key) { self.fire('xp-slave', {firer: self, coupler: self._coupleMaster.bind(self, key), selector: value, isAttached: true}); }.bind(self);
-            XP.delay(function () { XP.forOwn(self.mastersMap, firer); });
+            var self = this, fire = function (selector, key) { self.fire('xp-slave', {firer: self, couple: self._coupleMaster.bind(self, key), selector: selector, isAttached: true}); };
+            self.async(function () { XP.forOwn(self.mastersMap, fire); });
         },
 
         // LISTENER
         detached: function () {
-            var self = this, firer = function (value, key) { if (self[key]) { self[key].fire('xp-slave', {firer: self, coupler: self._decoupleMaster.bind(self, key), selector: value, isAttached: false}); } }.bind(self);
-            XP.delay(function () { XP.forOwn(self.mastersMap, firer); });
-        },
-
-        // LISTENER
-        ready: function () {
-            this._setMastersMap(this._setupMasters() || {});
+            var self = this, fire = function (selector, key) { if (self[key]) { self[key].fire('xp-slave', {firer: self, couple: self._decoupleMaster.bind(self, key), selector: selector, isAttached: false}); } };
+            self.async(function () { XP.forOwn(self.mastersMap, fire); });
         }
     };
 </script>
